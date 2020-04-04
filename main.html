@@ -2,11 +2,11 @@
 <html>
 <head>
 <meta charset="UTF-8">
-    <title>마우스 드래깅으로 캔버스에 그림 그리기</title>
+    <title>ESCARA, 마우스로 그림 그리기</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 </head>
 <body onload="init()">
-    <h3>마우스를 누른 채 드래깅하여 그림 그려 보세요</h3>
+    <h3>ESCARA, 마우스로 그림 그리기</h3>
     <hr>
     <canvas id="myCanvas" style="background-color:aliceblue" width="891" height="630">
     </canvas>
@@ -20,7 +20,7 @@
         function init() {
             canvas = document.getElementById("myCanvas");
             context = canvas.getContext("2d");
-            gcode = "M4 L55T70\nM5\nG28\n";
+            gcode = "M4 L55T70\nM5\nG28";
         
             context.lineWidth = 2; // 선 굵기를 2로 설정
             context.strokeStyle = "blue";
@@ -43,13 +43,13 @@
         function down(e) {
             startX = e.offsetX; startY = e.offsetY;
             console.log("clicked!");
-            gcode = gcode + "G1 X" + (startX/4).toFixed(1) + "Y" + ((630-startY)/4).toFixed(1) + "\nM3\n";
+            gcode = gcode + "\nG1 X" + (startX/4).toFixed(1) + "Y" + ((630-startY)/4).toFixed(1) + "\nM3";
             drawing = true;
         }
         function up(e) {
             var endX = e.offsetX, endY = e.offsetY;
             console.log("mouse up!");
-            gcode = gcode + "M5\n"
+            gcode = gcode + "\nM5"
             drawing = false;
         }
 
@@ -58,7 +58,7 @@
             var curX = e.offsetX, curY = e.offsetY;
             draw(curX, curY);
             startX = curX; startY = curY;
-            gcode = gcode + "G1 X" + (curX/4).toFixed(1) + "Y" + ((630-curY)/4).toFixed(1) + "\n";
+            gcode = gcode + "\nG1 X" + (curX/4).toFixed(1) + "Y" + ((630-curY)/4).toFixed(1);
         }
         function out(e) { drawing = false; }
 
@@ -66,7 +66,7 @@
             $("#clear_gcode").click(function(){
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 context.beginPath();
-                gcode = "M4 L55T70\nM5\nG28\n";
+                gcode = "M4 L55T70\nM5\nG28";
                 alert("지웠다");
             });
             $("#send_gcode").click(function(){
