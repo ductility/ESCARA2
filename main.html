@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+    <title>마우스 드래깅으로 캔버스에 그림 그리기</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<body onload="init()">
+    <h3>마우스를 누른 채 드래깅하여 그림 그려 보세요</h3>
+    <hr>
+    <canvas id="myCanvas" style="background-color:aliceblue" width="891" height="630">
+    </canvas>
+    </br>
+
+    <button id="clear_gcode">지우기</button>
+    <button id="send_gcode">POST로 파일쓰기</button>
+
+    <script>
+        var canvas, context, gcode;
+        function init() {
+            canvas = document.getElementById("myCanvas");
+            context = canvas.getContext("2d");
+            gcode = "M4 L55T70\nM5\nG28\n";
+        
+            context.lineWidth = 2; // 선 굵기를 2로 설정
+            context.strokeStyle = "blue";
+        
+            // 마우스 리스너 등록. e는 MouseEvent 객체
+            canvas.addEventListener("mousemove", function (e) { move(e) }, false);
+            canvas.addEventListener("mousedown", function (e) { down(e) }, false);
+            canvas.addEventListener("mouseup", function (e) { up(e) }, false);
+            canvas.addEventListener("mouseout", function (e) { out(e) }, false);
+        }
+        
+        var startX=0, startY=0; // 드래깅동안, 처음 마우스가 눌러진 좌표
+        var drawing=false;
+        function draw(curX, curY) {
+            context.beginPath();
+            context.moveTo(startX, startY);
+            context.lineTo(curX, curY);
+            context.stroke();
+        }
+        function down(e) {
+            startX = e.offsetX; startY = e.offsetY;
+            console.log("clicked!");
+            gcode = gcode + "G1 X" + (startX/4).toFixed(1) + "Y" + ((630-startY)/4).toFixed(1) + "\nM3\n";
+            drawing = true;
+        }
+        function up(e) {
+            var endX = e.offsetX, endY = e.offsetY;
+            console.log("mouse up!");
+            gcode = gcode + "M5\n"
+            drawing = false;
+        }
+
+        function move(e) {
+            if(!drawing) return; // 마우스가 눌러지지 않았으면 리턴
+            var curX = e.offsetX, curY = e.offsetY;
+            draw(curX, curY);
+            startX = curX; startY = curY;
+            gcode = gcode + "G1 X" + (curX/4).toFixed(1) + "Y" + ((630-curY)/4).toFixed(1) + "\n";
+        }
+        function out(e) { drawing = false; }
+
+        $(document).ready(function(){
+            $("#clear_gcode").click(function(){
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.beginPath();
+                gcode = "M4 L55T70\nM5\nG28\n";
+                alert("지웠다");
+            });
+            $("#send_gcode").click(function(){
+                $.post("/send_gcode", gcode, function(data, status){});
+            });
+        });
+
+
+    </script>
+</body>
+</html>
