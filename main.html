@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESCARA, 마우스로 그림 그리기</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 </head>
@@ -13,10 +14,11 @@
     </br>
 
     <button id="clear_gcode">지우기</button>
-    <button id="send_gcode">POST로 파일쓰기</button>
+    <button id="send_gcode">그리기</button>
 
     <script>
         var canvas, context, gcode;
+
         function init() {
             canvas = document.getElementById("myCanvas");
             context = canvas.getContext("2d");
@@ -30,16 +32,25 @@
             canvas.addEventListener("mousedown", function (e) { down(e) }, false);
             canvas.addEventListener("mouseup", function (e) { up(e) }, false);
             canvas.addEventListener("mouseout", function (e) { out(e) }, false);
+            // 터치 리스너 등록
+            canvas.addEventListener("touchmove", function (e) { touchmove(e) }, false);
+            canvas.addEventListener("touchstart", function (e) { touchstart(e) }, false);
+            canvas.addEventListener("touchend", function (e) { touchend(e) }, false);
+            canvas.addEventListener("touchcancel", function (e) { touchcancel(e) }, false);
         }
         
         var startX=0, startY=0; // 드래깅동안, 처음 마우스가 눌러진 좌표
         var drawing=false;
+
+        //그리는 함수
         function draw(curX, curY) {
             context.beginPath();
             context.moveTo(startX, startY);
             context.lineTo(curX, curY);
             context.stroke();
         }
+
+        //PC에서 마우스로 그릴 때
         function down(e) {
             startX = e.offsetX; startY = e.offsetY;
             console.log("clicked!");
@@ -47,12 +58,10 @@
             drawing = true;
         }
         function up(e) {
-            var endX = e.offsetX, endY = e.offsetY;
             console.log("mouse up!");
             gcode = gcode + "\nM5"
             drawing = false;
         }
-
         function move(e) {
             if(!drawing) return; // 마우스가 눌러지지 않았으면 리턴
             var curX = e.offsetX, curY = e.offsetY;
@@ -61,6 +70,32 @@
             gcode = gcode + "\nG1 X" + (curX/4).toFixed(1) + "Y" + ((630-curY)/4).toFixed(1);
         }
         function out(e) { drawing = false; }
+
+        //모바일에서 터치로 그릴 때
+        function touchstart(e) {
+            var rect = e.target.getBoundingClientRect();
+            startX = e.targetTouches[0].clientX - rect.left;
+            startY = e.targetTouches[0].clientY - rect.top;
+            console.log("clicked!");
+            gcode = gcode + "\nG1 X" + (startX/4).toFixed(1) + "Y" + ((630-startY)/4).toFixed(1) + "\nM3";
+            drawing = true;
+        }
+        function touchend(e) {
+            console.log("mouse up!");
+            gcode = gcode + "\nM5"
+            drawing = false;
+        }
+        function touchmove(e) {
+            if(!drawing) return; // 마우스가 눌러지지 않았으면 리턴
+            e.preventDefault();
+            var rect = e.target.getBoundingClientRect();
+            var curX = e.targetTouches[0].clientX - rect.left;
+            var curY = e.targetTouches[0].clientY - rect.top;            
+            draw(curX, curY);
+            startX = curX; startY = curY;
+            gcode = gcode + "\nG1 X" + (curX/4).toFixed(1) + "Y" + ((630-curY)/4).toFixed(1);
+        }
+        function touchcancel(e) { drawing = false; }
 
         $(document).ready(function(){
             $("#clear_gcode").click(function(){
