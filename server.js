@@ -1,3 +1,5 @@
+const gcode_cli_path = "~/workspace/gcode-cli/gcode-cli"; //자신의 gcode-cli파일의 경로에 맞게 수정해야함
+
 const port = 8080;
 const http = require('http');
 const url = require('url');
@@ -28,15 +30,14 @@ http.createServer((request, response) => {
                 fs.writeFile('test.gcode', chunk.toString(), 'utf8', function(error){
                     console.log("g-code 파일을 만들었습니다.");
 
-                    const child = exec("~/workspace/gcode-cli/gcode-cli test.gcode", function (error, stdout, stderr) { //쉘스크립트 동작
-                        // console.log('stdout: ' + stdout);
-                        // console.log('stderr: ' + stderr);
+                    const child = exec(gcode_cli_path + " test.gcode", function (error, stdout, stderr) { //gcode-cli 동작
+                        // console.log('stdout: ' + stdout);  //exec는 콜백으로 명령이 끝난 후 stdout과 stderr를 한꺼번에 출력
+                        // console.log('stderr: ' + stderr);  //실시간 gcode 전송 메세지를 받을 수 없으므로 주석 처리함
                         console.log('\n작업이 종료되었습니다.');
                         if (error !== null) {
                             console.log('exec error: ' + error);
                         }
                     });
-
                 })
             });
         }
