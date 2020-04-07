@@ -25,9 +25,13 @@ http.createServer((request, response) => {
     } else if (request.method == 'POST') {
         if (path === '/send_gcode') { // 주소가 /이면
             request.on('data', function(chunk) {
+                var gcode = ("&" + decodeURIComponent(chunk)).replace(/&chunk=/g,"");
                 console.log("***************************\ng-code 데이터를 받았습니다.");
-                console.log(chunk.toString()); //데이터 받은 것 표시
-                fs.writeFile('test.gcode', chunk.toString(), 'utf8', function(error){
+                console.log(gcode);
+                //console.log(gcode.replaceAll("M","G")); //데이터 받은 것 표시
+
+
+                fs.writeFile('test.gcode', gcode, 'utf8', function(error){
                     console.log("g-code 파일을 만들었습니다.");
 
                     const child = exec(gcode_cli_path + " test.gcode", function (error, stdout, stderr) { //gcode-cli 동작
@@ -38,7 +42,9 @@ http.createServer((request, response) => {
                             console.log('exec error: ' + error);
                         }
                     });
-                })
+
+                });
+
             });
         }
     }
