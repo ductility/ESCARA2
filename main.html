@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 사파리에서 홈 화면에 추가를 위한 설정 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ESCARA">
@@ -22,7 +23,7 @@
     <script>
 
         var canvas, context, gcode;
-        var startX = 0, startY = 0; // 드래깅동안, 처음 마우스가 눌러진 좌표
+        var startX = 0, startY = 0;
         var drawing = false;
 
         var canvas_size= 3; //A4규격 에서 확대할 배율
@@ -36,7 +37,7 @@
             context = canvas.getContext("2d");
             gcode = "M4L55T70\nM5\nG28";
         
-            context.lineWidth = 2; // 선 굵기를 2로 설정
+            context.lineWidth = 2; // 선 굵기 설정
             context.strokeStyle = "blue";
         
             // 마우스 리스너 등록. e는 MouseEvent 객체
@@ -70,7 +71,7 @@
             drawing = false;
         }
         function move(e) {
-            if(!drawing) return; // 마우스가 눌러지지 않았으면 리턴
+            if(!drawing) return;
             var curX = e.offsetX, curY = e.offsetY;
             draw(curX, curY);
             startX = curX; startY = curY;
@@ -102,7 +103,7 @@
         }
         function touchcancel(e) { drawing = false; }
 
-        //gcode 길이가 너무 길면 string 형태로 전송이 안되는 현상이 생겨 특정 갯수로 나눠줌
+        //gcode 길이가 너무 길면 string 형태로 전송이 안되는 현상이 생겨 특정 문자 수로 나눠줌
         function slicegcode(data) {
             var num = 10000;
             var data_array = [];
@@ -124,7 +125,7 @@
                 alert("그림과 데이터를 지웠습니다!");
             });
             //POST로 서버에 g-code 데이터를 전송
-            //데이터 길이가 너무 길면 post 전송 후 짤리는 현상 발생,, 추후 수정해야할듯
+            //string 데이터 길이가 너무 길면 post 전송 후 짤리는 현상 발생 --> Array를 전송하여 해결
             $("#send_gcode").click(function(){
                 $.ajax({
                     method      : 'POST',
@@ -134,18 +135,13 @@
                         'chunk' : slicegcode(gcode)
                     },
                     success     : function(data) {
-                        //alert("ok");        
                     },
                     error       : function(request, status, error) {
-                        //alert(error);
                     }
                 });
-
-                // $.post("/send_gcode", slicegcode(gcode), function(data, status){});
                 gcode = "M4L55T70\nM5\nG28"; //이어서 그릴 수 있게 g-code 리셋
             });
         });
-
     </script>
 </body>
 </html>
